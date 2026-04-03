@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARUNA · Monitoring Perbaikan Proposal P2MW 2026</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,300;0,600;1,300;1,600&display=swap');
+
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd6;
+  --border2: #c8c2b8;
+  --text: #1c1a17;
+  --text2: #5c5751;
+  --text3: #9e9890;
+  --accent: #b5622a;
+  --accent-bg: #fdf0e8;
+  --accent-dark: #8a4720;
+  --red: #be3a2e;   --red-bg: #fdf1f0;
+  --amber: #a65f0a; --amber-bg: #fef6e8;
+  --green: #1a6e40; --green-bg: #edf7f2;
+  --blue: #1a4f99;  --blue-bg: #eef4fd;
+  --purple: #6b24b2;--purple-bg: #f4eeff;
+  --r: 10px; --r-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,.07);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* ── SETUP SCREEN ── */
+#setup-screen{position:fixed;inset:0;background:var(--text);display:flex;align-items:center;justify-content:center;z-index:999;padding:24px;}
+.setup-card{background:var(--surface);border-radius:16px;padding:36px 40px;width:100%;max-width:440px;box-shadow:var(--shadow-md);}
+.setup-logo{font-family:'Fraunces',serif;font-size:32px;font-weight:300;color:var(--text);letter-spacing:-.5px;margin-bottom:4px;}
+.setup-logo span{color:var(--accent);font-style:italic;}
+.setup-sub{font-size:13px;color:var(--text3);margin-bottom:28px;}
+.setup-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;}
+.setup-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);background:var(--bg);transition:border .15s;margin-bottom:14px;}
+.setup-input:focus{outline:none;border-color:var(--accent);}
+.setup-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;margin-top:6px;}
+.setup-btn:hover{background:var(--accent-dark);}
+.setup-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.role-btn{padding:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;font-size:13px;color:var(--text2);}
+.role-btn:hover{border-color:var(--accent);background:var(--accent-bg);}
+.role-btn.selected{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;}
+.role-icon{font-size:20px;display:block;margin-bottom:3px;}
+.setup-divider{text-align:center;font-size:12px;color:var(--text3);margin:12px 0;}
+.setup-error{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;margin-top:12px;display:none;}
+
+/* ── HEADER ── */
+.app-header{background:var(--text);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;gap:16px;}
+.header-logo{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:#fff;letter-spacing:-.3px;}
+.header-logo span{color:var(--accent);font-style:italic;}
+.header-center{display:flex;align-items:center;gap:10px;flex:1;justify-content:center;}
+.header-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:.04em;}
+.hb-p2mw{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+.hb-deadline{background:#be3a2e;color:#fff;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:20px;padding:5px 12px 5px 5px;}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.user-name{font-size:13px;color:rgba(255,255,255,.8);}
+.role-pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:.05em;}
+.role-pembina{background:#b5622a;color:#fff;}
+.role-tim{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:5px 12px;border-radius:var(--r-sm);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.logout-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+/* ── LIVE USERS ── */
+.live-bar{background:var(--text);border-top:1px solid rgba(255,255,255,.08);padding:6px 28px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.5);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.live-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.live-chip{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:2px 10px;border-radius:10px;font-size:11px;}
+
+/* ── PROGRESS OVERVIEW ── */
+.progress-overview{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 28px;}
+.po-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.po-title{font-family:'Fraunces',serif;font-size:20px;font-weight:300;font-style:italic;}
+.po-stats{display:flex;gap:20px;flex-wrap:wrap;}
+.po-stat{text-align:center;}
+.po-num{font-size:24px;font-weight:700;line-height:1;}
+.po-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.po-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.po-bar-item{display:flex;flex-direction:column;gap:4px;}
+.po-bar-label{display:flex;justify-content:space-between;align-items:center;}
+.po-bar-name{font-size:11px;color:var(--text2);font-weight:500;}
+.po-bar-pct{font-size:11px;font-weight:700;}
+.po-bar-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.po-bar-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+/* ── LAYOUT ── */
+.app-layout{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 96px);}
+@media(max-width:768px){.app-layout{grid-template-columns:1fr;}}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;}
+.sidebar-section-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:0 16px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .12s;}
+.nav-item:hover{background:var(--surface2);}
+.nav-item.active{background:var(--accent-bg);border-left-color:var(--accent);}
+.nav-item.active .nav-label{color:var(--accent-dark);font-weight:600;}
+.nav-label{font-size:13px;color:var(--text2);flex:1;line-height:1.3;}
+.nav-pct{font-size:11px;font-weight:700;min-width:30px;text-align:right;}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.nd-red{background:var(--red);}  .nd-amber{background:#f59e0b;} .nd-green{background:#22c55e;} .nd-blue{background:#3b82f6;}
+.sidebar-divider{height:1px;background:var(--border);margin:10px 0;}
+
+/* ── MAIN ── */
+.main{padding:24px 28px;overflow-y:auto;}
+.panel{display:none;} .panel.active{display:block;}
+.panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+.panel-title{font-family:'Fraunces',serif;font-size:24px;font-weight:300;line-height:1.2;}
+.panel-title em{color:var(--accent);font-style:italic;}
+.status-badge{font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;margin-top:4px;}
+
+/* ── INFO BOXES ── */
+.info-box{border-left:3px solid;padding:12px 16px;border-radius:0 var(--r-sm) var(--r-sm) 0;margin-bottom:16px;font-size:13px;line-height:1.6;}
+.info-box strong{display:block;font-weight:700;margin-bottom:2px;}
+.ib-red{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.ib-amber{border-color:#f59e0b;background:var(--amber-bg);color:var(--amber);}
+.ib-green{border-color:#22c55e;background:var(--green-bg);color:var(--green);}
+.ib-blue{border-color:#3b82f6;background:var(--blue-bg);color:var(--blue);}
+
+/* ── SECTION PROGRESS ── */
+.section-progress{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+.sp-ring{position:relative;width:52px;height:52px;flex-shrink:0;}
+.sp-ring svg{width:52px;height:52px;}
+.sp-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.sp-info{flex:1;}
+.sp-title{font-size:14px;font-weight:600;margin-bottom:2px;}
+.sp-sub{font-size:12px;color:var(--text3);}
+
+/* ── TASK TABLE ── */
+.task-table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.task-table th{background:var(--text);color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;text-align:left;}
+.task-row{border-bottom:1px solid var(--border);transition:background .12s;}
+.task-row:last-child{border-bottom:none;}
+.task-row:hover{background:var(--surface2);}
+.task-row.done{background:#f0fdf4;}
+.task-row.done .task-text{text-decoration:line-through;color:var(--text3);}
+.task-table td{padding:11px 14px;vertical-align:top;}
+.task-num{font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap;}
+.check-wrap{display:flex;align-items:flex-start;padding-top:1px;}
+.task-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;background:var(--surface);}
+.task-check:hover{border-color:var(--accent);}
+.task-check.checked{background:var(--green);border-color:var(--green);}
+.task-check.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:800;}
+.task-check.pembina-only{cursor:not-allowed;opacity:.5;}
+.task-text{font-size:13px;color:var(--text);line-height:1.55;}
+.task-why{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic;}
+.prio-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
+.pt-kritis{background:var(--red-bg);color:var(--red);}
+.pt-penting{background:var(--amber-bg);color:var(--amber);}
+.pt-opsional{background:var(--blue-bg);color:var(--blue);}
+
+/* ── WHO CHECKED ── */
+.who-checked{font-size:10px;color:var(--text3);margin-top:3px;}
+.who-checked span{font-weight:600;color:var(--green);}
+
+/* ── NOTES ── */
+.notes-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
+.notes-header{background:var(--surface2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.notes-header-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;}
+.notes-body{padding:14px 16px;}
+.note-entry{padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+.note-entry:last-child{border-bottom:none;}
+.note-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.note-content{flex:1;}
+.note-meta{font-size:11px;color:var(--text3);margin-bottom:2px;}
+.note-meta strong{color:var(--text2);}
+.note-text{font-size:13px;color:var(--text);line-height:1.5;}
+.note-input-row{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;background:var(--surface2);border-top:1px solid var(--border);}
+.note-input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);resize:none;min-height:38px;transition:border .15s;line-height:1.5;}
+.note-input:focus{outline:none;border-color:var(--accent);}
+.note-send{background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);padding:9px 16px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.note-send:hover{background:var(--accent-dark);}
+.no-notes{font-size:13px;color:var(--text3);text-align:center;padding:20px 0;}
+
+/* ── OVERVIEW CARDS ── */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:6px;}
+.ov-num{font-size:28px;font-weight:700;line-height:1;}
+.ov-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+
+/* ── RUBRIK BOX ── */
+.rubrik-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden;}
+.rubrik-box-header{background:var(--text);padding:12px 16px;}
+.rubrik-box-header h3{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.07em;text-transform:uppercase;}
+.rubrik-row{display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;align-items:flex-start;}
+.rubrik-row:last-child{border-bottom:none;}
+.rubrik-key{font-weight:700;color:var(--accent);min-width:18px;flex-shrink:0;}
+.rubrik-val{color:var(--text2);flex:1;line-height:1.5;}
+.rubrik-pct{font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap;}
+
+/* ── TIMELINE ── */
+.tl{padding:4px 0;}
+.tl-item{display:flex;gap:14px;padding-bottom:18px;position:relative;}
+.tl-item::before{content:'';position:absolute;left:15px;top:30px;bottom:0;width:2px;background:var(--border);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border2);background:var(--surface);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;z-index:1;}
+.tl-done{background:var(--green);border-color:var(--green);color:#fff;}
+.tl-urgent{background:var(--red);border-color:var(--red);color:#fff;}
+.tl-warn{background:#f59e0b;border-color:#f59e0b;color:#fff;}
+.tl-body{flex:1;padding-top:5px;}
+.tl-title{font-size:14px;font-weight:600;margin-bottom:2px;}
+.tl-sub{font-size:12px;color:var(--text3);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:10px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;box-shadow:var(--shadow-md);}
+.toast.show{opacity:1;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .app-header{padding:0 16px;}
+  .main{padding:16px;}
+  .progress-overview{padding:16px;}
+  .live-bar{padding:6px 16px;}
+  .header-center{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">ARUNA <span>Monitor</span></div>
+    <div class="setup-sub">Dashboard Monitoring Perbaikan Proposal P2MW 2026 · UNNES</div>
+
+    <label class="setup-label">Pilih Peran Anda</label>
+    <div class="setup-roles">
+      <button class="role-btn selected" id="role-tim" onclick="selectRole('tim')">
+        <span class="role-icon">👩‍💻</span>Tim ARUNA
+      </button>
+      <button class="role-btn" id="role-pembina" onclick="selectRole('pembina')">
+        <span class="role-icon">👨‍🏫</span>Dosen Pembina
+      </button>
+    </div>
+
+    <label class="setup-label">Nama Anda</label>
+    <input class="setup-input" id="input-name" type="text" placeholder="Contoh: Fachri / Pak Hendra" maxlength="40">
+
+    <div id="pembina-field" style="display:none;">
+      <label class="setup-label">Kode Akses Pembina</label>
+      <input class="setup-input" id="input-kode" type="password" placeholder="Masukkan kode akses">
+    </div>
+
+    <button class="setup-btn" onclick="doLogin()">Masuk Dashboard →</button>
+    <div class="setup-error" id="setup-error"></div>
+
+    <div class="setup-divider">Kode pembina didapatkan dari dosen pendamping</div>
+  </div>
+</div>
+
+<!-- APP HEADER -->
+<header class="app-header" style="display:none;" id="app-header">
+  <div class="header-logo">ARUNA <span>Monitor</span></div>
+  <div class="header-center">
+    <span class="header-badge hb-p2mw">P2MW 2026 · Bisnis Digital · Bertumbuh</span>
+    <span class="header-badge hb-deadline" id="deadline-badge">⏰ Loading...</span>
+  </div>
+  <div class="header-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="hdr-avatar">?</div>
+      <span class="user-name" id="hdr-name">...</span>
+      <span class="role-pill" id="hdr-role">...</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Keluar</button>
+  </div>
+</header>
+
+<!-- LIVE BAR -->
+<div class="live-bar" style="display:none;" id="live-bar">
+  <span><span class="live-dot"></span>Sedang Online:</span>
+  <div class="live-chips" id="live-chips"></div>
+</div>
+
+<!-- PROGRESS OVERVIEW -->
+<div class="progress-overview" style="display:none;" id="progress-overview">
+  <div class="po-top">
+    <div class="po-title">Progress Perbaikan Proposal</div>
+    <div class="po-stats">
+      <div class="po-stat"><div class="po-num" id="po-done" style="color:var(--green)">0</div><div class="po-lbl">Selesai</div></div>
+      <div class="po-stat"><div class="po-num" id="po-total">0</div><div class="po-lbl">Total</div></div>
+      <div class="po-stat"><div class="po-num" id="po-kritis" style="color:var(--red)">0</div><div class="po-lbl">Kritis Sisa</div></div>
+      <div class="po-stat"><div class="po-num" id="po-pct" style="color:var(--accent)">0%</div><div class="po-lbl">Kesiapan</div></div>
+    </div>
+  </div>
+  <div class="po-bars" id="po-bars"></div>
+</div>
+
+<!-- APP LAYOUT -->
+<div class="app-layout" style="display:none;" id="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div style="padding:4px 0 8px;">
+      <div class="sidebar-section-title">Overview</div>
+      <div class="nav-item active" onclick="showPanel('overview',this)">
+        <div class="nav-dot nd-blue"></div>
+        <span class="nav-label">📊 Ikhtisar Umum</span>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-title" style="padding-top:10px;">Kriteria P2MW 2026</div>
+    <div class="nav-item" onclick="showPanel('a',this)">
+      <div class="nav-dot" id="snav-a"></div>
+      <span class="nav-label">A. Tujuan Mulia</span>
+      <span class="nav-pct" id="spct-a">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('b',this)">
+      <div class="nav-dot" id="snav-b"></div>
+      <span class="nav-label">B. Konsumen Potensial</span>
+      <span class="nav-pct" id="spct-b">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('c',this)">
+      <div class="nav-dot" id="snav-c"></div>
+      <span class="nav-label">C. Inovasi Produk ⚠️</span>
+      <span class="nav-pct" id="spct-c">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('d',this)">
+      <div class="nav-dot" id="snav-d"></div>
+      <span class="nav-label">D. Pemasaran</span>
+      <span class="nav-pct" id="spct-d">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('e',this)">
+      <div class="nav-dot" id="snav-e"></div>
+      <span class="nav-label">E. Sumber Daya</span>
+      <span class="nav-pct" id="spct-e">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('f',this)">
+      <div class="nav-dot" id="snav-f"></div>
+      <span class="nav-label">F. Keuangan ⚠️</span>
+      <span class="nav-pct" id="spct-f">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('g',this)">
+      <div class="nav-dot" id="snav-g"></div>
+      <span class="nav-label">G. Traksi & Kinerja ⚠️</span>
+      <span class="nav-pct" id="spct-g">—</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-title">Aspek Tambahan</div>
+    <div class="nav-item" onclick="showPanel('web',this)">
+      <div class="nav-dot" id="snav-web"></div>
+      <span class="nav-label">🌐 Website Demo</span>
+      <span class="nav-pct" id="spct-web">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('admin',this)">
+      <div class="nav-dot" id="snav-admin"></div>
+      <span class="nav-label">📋 Kelengkapan Admin</span>
+      <span class="nav-pct" id="spct-admin">—</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="panel-overview">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Ikhtisar <em>Monitoring ARUNA</em></div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;">Deadline upload: 7 April 2026 · UNNES FIPP · Kategori Bisnis Digital</div>
+        </div>
+      </div>
+
+      <div class="info-box ib-amber">
+        <strong>⏰ Deadline Upload Proposal ke Sistem P2MW: 7 April 2026</strong>
+        Pastikan semua item bertanda 🔴 KRITIS selesai minimal 2 hari sebelum deadline untuk proses upload dan finalisasi dokumen administratif UNNES.
+      </div>
+
+      <div class="ov-grid">
+        <div class="ov-card"><div class="ov-num" id="ov-done" style="color:var(--green)">—</div><div class="ov-lbl">Tugas Selesai</div></div>
+        <div class="ov-card"><div class="ov-num" id="ov-kritis" style="color:var(--red)">—</div><div class="ov-lbl">Kritis Belum Selesai</div></div>
+        <div class="ov-card"><div class="ov-num" id="ov-penting" style="color:#f59e0b">—</div><div class="ov-lbl">Penting Belum Selesai</div></div>
+        <div class="ov-card"><div class="ov-num" id="ov-pct" style="color:var(--accent)">—</div><div class="ov-lbl">Total Kesiapan</div></div>
+      </div>
+
+      <div class="rubrik-box">
+        <div class="rubrik-box-header"><h3>Rubrik Penilaian P2MW 2026 — Bisnis Digital (Tahap Bertumbuh)</h3></div>
+        <div class="rubrik-row"><span class="rubrik-key">A</span><span class="rubrik-val"><strong>Tujuan Mulia / Noble Purpose</strong> — Dampak sosial, Asta Cita, SDGs, alasan pendirian usaha</span><span class="rubrik-pct">10%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">B</span><span class="rubrik-val"><strong>Konsumen Potensial</strong> — STP, TAM/SAM/SOM, analisis kompetitor, potensi pasar</span><span class="rubrik-pct">20%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">C</span><span class="rubrik-val"><strong>Inovasi Produk</strong> — Keunikan, deskripsi teknis, demo/prototype, keunggulan vs kompetitor</span><span class="rubrik-pct">20%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">D</span><span class="rubrik-val"><strong>Pemasaran</strong> — Strategi 4P, AIDA, customer relationship, rencana distribusi</span><span class="rubrik-pct">20%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">E</span><span class="rubrik-val"><strong>Sumber Daya</strong> — Kompetensi tim, kemitraan, aset fisik/non-fisik, legalitas NIB</span><span class="rubrik-pct">20%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">F</span><span class="rubrik-val"><strong>Keuangan</strong> — Laba rugi, arus kas, neraca, RAB penggunaan dana P2MW</span><span class="rubrik-pct">10%</span></div>
+        <div class="rubrik-row"><span class="rubrik-key">G</span><span class="rubrik-val"><strong>Traksi & Kinerja</strong> — Pengguna, mitra aktif, review customer, jejak pertumbuhan</span><span class="rubrik-pct">10%</span></div>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Timeline Prioritas</div>
+      <div class="tl">
+        <div class="tl-item"><div class="tl-dot tl-urgent">!</div><div class="tl-body"><div class="tl-title">Isi Bagian C — Inovasi Produk (KOSONG)</div><div class="tl-sub">Bobot 20% — paling dilihat reviewer. Harus selesai paling pertama.</div></div></div>
+        <div class="tl-item"><div class="tl-dot tl-urgent">!</div><div class="tl-body"><div class="tl-title">Buat Laporan Keuangan (Laba Rugi, Arus Kas, Neraca)</div><div class="tl-sub">Wajib Tahap Bertumbuh sesuai Lampiran 4, 6, 7 Panduan P2MW 2026</div></div></div>
+        <div class="tl-item"><div class="tl-dot tl-urgent">!</div><div class="tl-body"><div class="tl-title">Tambahkan Data Traksi 6 Bulan</div><div class="tl-sub">Pengguna, mitra, analytics website, media sosial — sesuai Lampiran 8</div></div></div>
+        <div class="tl-item"><div class="tl-dot tl-warn">~</div><div class="tl-body"><div class="tl-title">Perbaiki Website Demo — 5 item kritis</div><div class="tl-sub">Email, nama CTO, angka 2.8k, semua CTA button</div></div></div>
+        <div class="tl-item"><div class="tl-dot tl-warn">~</div><div class="tl-body"><div class="tl-title">Lengkapi Dokumen Administrasi</div><div class="tl-sub">Lembar pengesahan, berita acara, NIB/legalitas, akun sistem P2MW</div></div></div>
+        <div class="tl-item"><div class="tl-dot">↑</div><div class="tl-body"><div class="tl-title">Upload ke sistem p2mw.kemdiktisaintek.go.id</div><div class="tl-sub">Batas akhir: 7 April 2026</div></div></div>
+      </div>
+    </div>
+
+    <!-- SECTION PANELS (generated by JS) -->
+    <div class="panel" id="panel-a"></div>
+    <div class="panel" id="panel-b"></div>
+    <div class="panel" id="panel-c"></div>
+    <div class="panel" id="panel-d"></div>
+    <div class="panel" id="panel-e"></div>
+    <div class="panel" id="panel-f"></div>
+    <div class="panel" id="panel-g"></div>
+    <div class="panel" id="panel-web"></div>
+    <div class="panel" id="panel-admin"></div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== SCRIPT ===== -->
+<script>
+// ── FIREBASE CONFIG ──
+const FB_CONFIG = {
+  apiKey: "AIzaSyDJUyRbGSVPwDCwKkZbrDPncb9XKJ-rGy8",
+  authDomain: "aruna-monitor-system.firebaseapp.com",
+  databaseURL: "https://aruna-monitor-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "aruna-monitor-system",
+  storageBucket: "aruna-monitor-system.firebasestorage.app",
+  messagingSenderId: "654320981959",
+  appId: "1:654320981959:web:18a3298dbb5bac2dcbebe2"
+};
+
+const PEMBINA_KODE = "aruna2026"; // GANTI kode akses pembina sesuai keinginan
+
+// ── TASK DATA ──
+const TASKS = {
+  a:{
+    title:'Tujuan Mulia (Noble Purpose)',bobot:'10%',
+    status:'Cukup Baik',statusColor:'green',
+    info:{type:'green',msg:'✅ Bagian ini sudah cukup kuat',sub:'Narasi dampak sosial, SDGs, dan Asta Cita sudah ada. Fokus perbaikan pada validasi data dan kejelasan keterkaitan kebijakan.'},
+    tasks:[
+      {id:'a1',text:'Tambahkan tahun spesifik pada data Komnas PA ("Data Komnas PA tahun [XXXX] mencatat 2.848 kasus...")',why:'Reviewer akan mempertanyakan validitas data tanpa tahun',prio:'kritis'},
+      {id:'a2',text:'Pastikan sumber referensi Komnas PA ada di daftar pustaka dengan format yang benar',why:'Konsistensi sitasi memperkuat kredibilitas proposal',prio:'penting'},
+      {id:'a3',text:'Tambahkan kalimat eksplisit tentang kontribusi ARUNA terhadap Asta Cita ke-3 (penguatan ekonomi produktif)',why:'P2MW 2026 menekankan Asta Cita dalam rubrik penilaian — harus eksplisit',prio:'penting'},
+      {id:'a4',text:'Tambahkan target kuantitatif dampak: "ARUNA ditargetkan menjangkau X anak pada tahun pertama..."',why:'Noble Purpose yang terukur lebih meyakinkan reviewer daripada pernyataan kualitatif',prio:'opsional'},
+    ]
+  },
+  b:{
+    title:'Konsumen Potensial',bobot:'20%',
+    status:'Perlu Perbaikan',statusColor:'amber',
+    info:{type:'amber',msg:'⚠️ Konten ada, perlu penguatan data',sub:'STP dan TAM/SAM/SOM sudah ada. Yang lemah: kompetitor analysis hanya gambar tanpa narasi tertulis, dan SOM 276.000 terlalu optimistis.'},
+    tasks:[
+      {id:'b1',text:'Tulis narasi kompetitor analysis minimal 2–3 paragraf (bukan hanya gambar) yang menjelaskan keunggulan ARUNA vs Ruangguru, Kelas Pintar, dan Marbel',why:'Jika gambar tidak tampil saat review online, bagian ini akan kosong',prio:'kritis'},
+      {id:'b2',text:'Tambahkan metodologi survei: N sampel, metode (online/offline), instrumen, dan periode survei (bulan/tahun 2025)',why:'Tanpa metodologi, klaim "70% responden" tidak valid secara akademik',prio:'kritis'},
+      {id:'b3',text:'Revisi SOM menjadi bertahap: Fase 1 (6 bln): 500 pengguna → Fase 2 (12 bln): 5.000 → Fase 3 (24 bln): 50.000',why:'SOM 276.000 terlalu optimistis untuk startup baru tanpa roadmap yang jelas',prio:'penting'},
+      {id:'b4',text:'Tambahkan analisis potensi pasar AR/edutech Indonesia secara spesifik (bukan hanya data global)',why:'Juri ingin melihat pemahaman pasar domestik yang mendalam',prio:'penting'},
+      {id:'b5',text:'Tambahkan 1–2 kompetitor dari luar negeri (mis. Epic Creations, Khan Academy Kids) untuk perspektif global',why:'Menunjukkan tim sudah melakukan riset komprehensif lintas negara',prio:'opsional'},
+    ]
+  },
+  c:{
+    title:'Inovasi Produk',bobot:'20%',
+    status:'⚠️ KOSONG — Kritis!',statusColor:'red',
+    info:{type:'red',msg:'🚨 DARURAT — Bagian ini kosong total dalam proposal',sub:'Heading "C. Inovasi Produk" ada di dokumen tapi tidak ada konten sama sekali di bawahnya. Bobot 20% dan paling dilihat reviewer. Harus diisi SEGERA.'},
+    tasks:[
+      {id:'c1',text:'Tulis deskripsi lengkap AR Simulation: cara kerja, library/framework (Unity/ARCore/WebXR), proses interaksi anak dengan karakter 3D',why:'BAGIAN INI KOSONG TOTAL — prioritas nomor 1 seluruh proposal',prio:'kritis'},
+      {id:'c2',text:'Deskripsikan Smart Digfo: format konten, cara penggunaan, jumlah modul yang sudah ada, contoh topik',why:'Fitur ini disebutkan di positioning tapi tidak ada di Inovasi Produk',prio:'kritis'},
+      {id:'c3',text:'Deskripsikan Smart Digvi: format video, durasi, platform hosting, jumlah episode yang sudah diproduksi',why:'Reviewer perlu tahu sejauh mana konten video sudah jadi',prio:'kritis'},
+      {id:'c4',text:'Deskripsikan Smart E-Modul: format, jumlah modul, struktur kurikulum, nama psikolog yang memvalidasi konten',why:'Validasi psikolog adalah pembeda utama ARUNA vs konten edukasi random',prio:'kritis'},
+      {id:'c5',text:'Deskripsikan EduGuide AI Assistant: teknologi yang digunakan, cara kerja, contoh pertanyaan yang bisa dijawab',why:'Fitur AI adalah nilai jual premium yang harus dijelaskan secara teknis',prio:'kritis'},
+      {id:'c6',text:'Tambahkan screenshot/mockup dari website demo (arunademo.vercel.app) sebagai bukti visual kesiapan produk',why:'Bukti visual produk nyata jauh lebih meyakinkan daripada deskripsi saja',prio:'kritis'},
+      {id:'c7',text:'Tulis alur penggunaan step-by-step: orang tua buka app → anak mulai belajar → AR aktif → laporan ke dashboard',why:'Reviewer perlu memahami user journey secara lengkap',prio:'penting'},
+      {id:'c8',text:'Jelaskan mekanisme keamanan konten: review/validasi sebelum konten dipublikasikan',why:'Anak usia 3–6 tahun adalah segmen sensitif — juri pasti menanyakan ini',prio:'penting'},
+    ]
+  },
+  d:{
+    title:'Pemasaran',bobot:'20%',
+    status:'Perlu Penguatan',statusColor:'amber',
+    info:{type:'amber',msg:'⚠️ Kerangka sudah ada, detail perlu diperkuat',sub:'4P sudah ada. AIDA ada tapi hanya gambar. Customer Relationship sudah tertulis. Yang kurang: narasi AIDA, metrik target per tahap, strategi konversi spesifik.'},
+    tasks:[
+      {id:'d1',text:'Tulis narasi AIDA Funnel secara tertulis per tahap: Awareness, Interest, Desire, Action — masing-masing min 2 kalimat + target metrik',why:'Saat ini hanya gambar (image5). Jika gambar tidak tampil = bagian ini kosong',prio:'kritis'},
+      {id:'d2',text:'Tambahkan target metrik spesifik per channel: Instagram target follower, TikTok views/konten, dll.',why:'Reviewer menghargai target yang terukur, bukan rencana abstrak',prio:'penting'},
+      {id:'d3',text:'Deskripsikan campaign "Lindungi Anak Sejak Dini" lebih detail: timeline, jenis konten, platform, KPI',why:'Campaign ini disebutkan tapi tidak ada detail eksekusinya',prio:'penting'},
+      {id:'d4',text:'Jelaskan strategi konversi dari free ke premium: apa trigger yang membuat orang tua mau upgrade?',why:'Monetisasi adalah pertanyaan paling sering juri untuk produk freemium',prio:'penting'},
+      {id:'d5',text:'Tambahkan rencana kemitraan dengan komunitas parenting spesifik (nama komunitas, jumlah member)',why:'Data konkret lebih meyakinkan daripada kalimat umum "komunitas parenting"',prio:'opsional'},
+    ]
+  },
+  e:{
+    title:'Sumber Daya',bobot:'20%',
+    status:'Relatif Baik',statusColor:'green',
+    info:{type:'green',msg:'✅ Struktur tim & sumber daya sudah terdokumentasi',sub:'Tabel keahlian tim sudah ada. Mitra disebutkan. Kelemahan: tidak ada bukti kemitraan, legalitas NIB tidak disebutkan, nama CTO inkonsisten dengan website.'},
+    tasks:[
+      {id:'e1',text:'Sinkronkan nama CTO antara proposal (Muhamad Nur Iman) dan website demo (tertulis "Andi") — pilih satu yang benar',why:'Inkonsistensi nama menunjukkan kurangnya perhatian terhadap detail',prio:'kritis'},
+      {id:'e2',text:'Cantumkan status legalitas usaha: apakah sudah memiliki NIB? Jika belum, kapan rencana pengurusannya?',why:'P2MW Tahap Bertumbuh mensyaratkan usaha sudah terdaftar (NIB/OSS)',prio:'kritis'},
+      {id:'e3',text:'Lampirkan surat keterangan atau MoU dari minimal 1 mitra (SDN Jombor, TK Al-Hikmah, atau SMP Sultan Agung 4)',why:'Mitra disebutkan tapi tidak ada bukti — reviewer bisa menganggapnya fiktif',prio:'penting'},
+      {id:'e4',text:'Perkuat kolom Pelatihan/Bukti di Tabel 2.1: ganti nama generik dengan nama pelatihan spesifik + tahun + penyelenggara',why:'Pelatihan tanpa penyelenggara tidak dapat diverifikasi oleh reviewer',prio:'penting'},
+      {id:'e5',text:'Tambahkan nama psikolog anak yang memvalidasi konten (jika ada) sebagai bagian sumber daya non-fisik',why:'Validator psikolog adalah bukti keseriusan keamanan konten untuk anak',prio:'penting'},
+      {id:'e6',text:'Tambahkan informasi dosen pembimbing dari UNNES secara formal (nama, prodi, NIDN)',why:'Keberadaan dosen pembimbing resmi memperkuat credibility proposal',prio:'opsional'},
+    ]
+  },
+  f:{
+    title:'Keuangan',bobot:'10%',
+    status:'Tidak Ada — Kritis!',statusColor:'red',
+    info:{type:'red',msg:'🚨 Tidak ada laporan keuangan dalam proposal',sub:'P2MW 2026 Tahap Bertumbuh mensyaratkan: Laporan Laba Rugi, Arus Kas, Neraca, dan RAB. Semuanya tidak ada dalam proposal ARUNA saat ini.'},
+    tasks:[
+      {id:'f1',text:'Buat Laporan Laba Rugi Historis sesuai format Lampiran 6 Panduan P2MW 2026 (Tahap Bertumbuh)',why:'WAJIB per panduan P2MW 2026 — tanpa ini proposal bisa gugur administratif',prio:'kritis'},
+      {id:'f2',text:'Buat Laporan Arus Kas minimal 3 bulan terakhir sesuai format Lampiran 4 Panduan P2MW 2026',why:'Reviewer keuangan akan mencari dokumen ini pertama kali',prio:'kritis'},
+      {id:'f3',text:'Buat Neraca sederhana per akhir periode terakhir sesuai format Lampiran 7 Panduan P2MW 2026',why:'Diperlukan untuk Tahap Bertumbuh sesuai panduan resmi',prio:'kritis'},
+      {id:'f4',text:'Buat RAB Penggunaan Dana P2MW per item sesuai format Lampiran 9 Panduan P2MW 2026',why:'Dana P2MW maksimal Rp 20 juta — harus ada justifikasi rinci per item',prio:'kritis'},
+      {id:'f5',text:'Tambahkan proyeksi pendapatan 6 bulan ke depan: target pengguna × harga × estimasi conversion rate',why:'Reviewer ingin melihat kemampuan tim menghitung proyeksi bisnis',prio:'penting'},
+      {id:'f6',text:'Hitung estimasi Break Even Point (BEP): berapa pengguna premium untuk menutup biaya operasional?',why:'Menunjukkan keseriusan model bisnis dan kemampuan analisis keuangan',prio:'penting'},
+    ]
+  },
+  g:{
+    title:'Traksi & Kinerja Usaha',bobot:'10%',
+    status:'Tidak Ada — Kritis!',statusColor:'red',
+    info:{type:'red',msg:'🚨 Usaha sudah 6 bulan tapi tidak ada data traksi',sub:'P2MW 2026 Lampiran 8 memuat format "Contoh Traction". Untuk Tahap Bertumbuh, traksi WAJIB ada. Juri akan menolak jika tidak ada bukti usaha berjalan.'},
+    tasks:[
+      {id:'g1',text:'Tambahkan sub-bagian "Capaian Usaha Juli 2025–Maret 2026": jumlah akun terdaftar, pengguna aktif, sekolah yang sudah diujicoba',why:'6 bulan berjalan tanpa satu pun data traksi = red flag terbesar untuk juri',prio:'kritis'},
+      {id:'g2',text:'Tambahkan data pengunjung website (Google Analytics/Vercel Analytics): total views, unique visitors',why:'Analytics website adalah traksi digital paling mudah dibuktikan dengan screenshot',prio:'kritis'},
+      {id:'g3',text:'Sertakan screenshot bukti traksi: tangkapan layar pengguna terdaftar, pesan dari mitra/sekolah, testimoni tertulis',why:'Panduan P2MW 2026 Lampiran 8 memuat format Contoh Traction yang harus dipenuhi',prio:'kritis'},
+      {id:'g4',text:'Tambahkan data media sosial: jumlah followers, engagement rate, reach konten per platform',why:'Aktivitas sosmed adalah bukti pemasaran yang sudah berjalan',prio:'penting'},
+      {id:'g5',text:'Jika ada transaksi penjualan (meski kecil), dokumentasikan sebagai traksi revenue',why:'Bahkan Rp 50.000 dari penjualan pertama sudah menjadi bukti traksi yang sah',prio:'penting'},
+      {id:'g6',text:'Tambahkan jumlah institusi yang sudah dijajaki/dihubungi sebagai traksi business development',why:'Menunjukkan aktivitas tim dalam membangun jejaring meski belum kontrak resmi',prio:'opsional'},
+    ]
+  },
+  web:{
+    title:'Website Demo — arunademo.vercel.app',bobot:'Pendukung',
+    status:'Kesiapan ~85%',statusColor:'blue',
+    info:{type:'blue',msg:'💡 Website demo adalah senjata utama saat presentasi ke juri',sub:'Juri P2MW Bisnis Digital sangat menghargai produk yang bisa dilihat langsung. Pastikan semua halaman berfungsi sempurna sebelum hari presentasi.'},
+    tasks:[
+      {id:'w1',text:'Ganti email kontak ahmadfahr2004@gmail.com ke email profesional domain (mis. halo@aruna.id)',why:'Email Gmail pribadi mengurangi kesan profesional saat demo ke juri',prio:'kritis'},
+      {id:'w2',text:'Sinkronkan nama CTO di website: ganti "Andi" menjadi "Muhamad Nur Iman" sesuai proposal',why:'Inkonsistensi nama akan ditangkap juri jika mereka membuka website saat presentasi',prio:'kritis'},
+      {id:'w3',text:'Validasi angka "2.8k+ Anak Terlindungi" — siapkan cara pengukurannya atau ganti ke angka defensible',why:'Juri akan bertanya cara mengukurnya — jawaban tidak jelas akan merugikan',prio:'kritis'},
+      {id:'w4',text:'Pastikan semua CTA button berfungsi: Mulai Petualangan, Lihat Demo, Buat Akun Gratis, Berlangganan',why:'Tombol mati saat demo langsung = kesan negatif yang sangat dalam',prio:'kritis'},
+      {id:'w5',text:'Publish minimal 2 artikel blog yang nyata dan lengkap (bukan placeholder)',why:'Blog kosong menunjukkan komitmen konten yang lemah',prio:'penting'},
+      {id:'w6',text:'Tambahkan halaman /demo-ar atau video walkthrough yang bisa diputar langsung di website',why:'Demonstrasi AR adalah nilai jual utama — harus bisa dilihat tanpa install app',prio:'penting'},
+      {id:'w7',text:'Tambahkan foto tim asli di halaman About (bukan placeholder) dengan nama yang konsisten',why:'Transparansi tim meningkatkan kepercayaan reviewer',prio:'penting'},
+      {id:'w8',text:'Pastikan form kontak di /contact berfungsi dan mengirim email ke alamat aktif',why:'Juri mungkin mencoba menghubungi tim via website',prio:'penting'},
+      {id:'w9',text:'Pasang Google Analytics atau Vercel Analytics untuk mulai mengumpulkan data pengunjung',why:'Data analytics adalah bukti traksi digital yang konkret',prio:'opsional'},
+      {id:'w10',text:'Set meta tags (og:title, og:description, og:image) untuk preview profesional saat link di-share',why:'Juri mungkin share link ke sesama reviewer — preview harus representatif',prio:'opsional'},
+    ]
+  },
+  admin:{
+    title:'Kelengkapan Administrasi',bobot:'Wajib Upload',
+    status:'Cek Segera',statusColor:'blue',
+    info:{type:'blue',msg:'📋 Syarat Upload ke Sistem P2MW Kemdiktisaintek',sub:'Selain proposal, ada dokumen wajib yang harus disiapkan sebelum upload ke sistem p2mw.kemdiktisaintek.go.id (Batas: 7 April 2026).'},
+    tasks:[
+      {id:'ad1',text:'Daftar akun mahasiswa di sistem p2mw.kemdiktisaintek.go.id (semua anggota, 3–5 mahasiswa)',why:'Syarat pertama sebelum bisa upload proposal ke sistem nasional',prio:'kritis'},
+      {id:'ad2',text:'Siapkan Lembar Pengesahan Mahasiswa sesuai Lampiran 1 Panduan P2MW 2026 (ditandatangani Dekan/Wakil Rektor)',why:'Dokumen wajib upload bersama proposal',prio:'kritis'},
+      {id:'ad3',text:'Siapkan Berita Acara Penilaian Proposal Internal UNNES sesuai Lampiran 2 Panduan P2MW 2026',why:'Seleksi internal PT harus terdokumentasi sebagai syarat upload ke nasional',prio:'kritis'},
+      {id:'ad4',text:'Konfirmasi kategori: Bisnis Digital, Tahap Bertumbuh (usaha sudah >6 bulan)',why:'Salah kategori/tahapan menyebabkan diskualifikasi langsung',prio:'kritis'},
+      {id:'ad5',text:'Verifikasi semua anggota tidak terdaftar di pendanaan lain (PKM/PPK Ormawa) pada periode yang sama',why:'Keanggotaan ganda menyebabkan diskualifikasi otomatis',prio:'kritis'},
+      {id:'ad6',text:'Siapkan bukti usaha sudah berjalan (screenshot transaksi / surat keterangan aktif usaha)',why:'Tahap Bertumbuh mensyaratkan bukti usaha sudah berjalan minimal 6 bulan',prio:'kritis'},
+      {id:'ad7',text:'Siapkan NIB/OSS atau surat keterangan dari inkubator bisnis UNNES',why:'P2MW 2026 mensyaratkan bukti validasi/kesiapan produk dari PT',prio:'penting'},
+      {id:'ad8',text:'Siapkan RAB sesuai format Lampiran 9 Panduan P2MW 2026 dalam format sistem',why:'RAB harus dalam format yang ditentukan panduan, bukan format bebas',prio:'penting'},
+      {id:'ad9',text:'Pastikan seluruh anggota masih berstatus mahasiswa aktif dan terdaftar di PDDIKTI',why:'Status kemahasiswaan diverifikasi otomatis oleh sistem Kemdiktisaintek',prio:'kritis'},
+      {id:'ad10',text:'Konfirmasi tidak ada anggota yang sudah mengikuti P2MW 2 kali sebelumnya',why:'Batas maksimal partisipasi P2MW adalah 2 kali pada tahun berbeda',prio:'penting'},
+    ]
+  }
+};
+
+const SECTIONS = ['a','b','c','d','e','f','g','web','admin'];
+
+// ── APP STATE ──
+let currentUser = null;
+let currentRole = 'tim';
+let db = null;
+let dbRef = null;
+let checksData = {};
+let notesData = {};
+
+// ── FIREBASE INIT ──
+let fbReady = false;
+try {
+  firebase.initializeApp(FB_CONFIG);
+  db = firebase.database();
+  dbRef = db.ref('aruna_p2mw2026');
+  fbReady = true;
+} catch(e) {
+  console.log('✅ Firebase connected: aruna-monitor-system'); // connected
+}
+
+// ── ROLE SELECTION ──
+let selectedRole = 'tim';
+function selectRole(r) {
+  selectedRole = r;
+  document.getElementById('role-tim').classList.toggle('selected', r==='tim');
+  document.getElementById('role-pembina').classList.toggle('selected', r==='pembina');
+  document.getElementById('pembina-field').style.display = r==='pembina' ? 'block' : 'none';
+}
+
+// ── LOGIN ──
+function doLogin() {
+  const name = document.getElementById('input-name').value.trim();
+  const kode = document.getElementById('input-kode')?.value.trim();
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+
+  if (!name) { showError('Masukkan nama Anda terlebih dahulu.'); return; }
+  if (selectedRole === 'pembina' && kode !== PEMBINA_KODE) {
+    showError('Kode akses pembina tidak valid. Hubungi dosen pendamping.'); return;
+  }
+
+  currentUser = name;
+  currentRole = selectedRole;
+  sessionStorage.setItem('aruna_user', JSON.stringify({name, role: selectedRole}));
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-header').style.display = 'flex';
+  document.getElementById('live-bar').style.display = 'flex';
+  document.getElementById('progress-overview').style.display = 'block';
+  document.getElementById('app-layout').style.display = 'grid';
+
+  setupHeader();
+  updateDeadline();
+  renderAllPanels();
+  initFirebase();
+}
+
+function showError(msg) {
+  const el = document.getElementById('setup-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogout() {
+  // Remove presence
+  if (db) db.ref('aruna_p2mw2026/presence/' + sanitizeKey(currentUser)).remove();
+  sessionStorage.removeItem('aruna_user');
+  location.reload();
+}
+
+function setupHeader() {
+  const initials = currentUser.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('hdr-avatar').textContent = initials;
+  document.getElementById('hdr-name').textContent = currentUser;
+  const roleEl = document.getElementById('hdr-role');
+  roleEl.textContent = currentRole === 'pembina' ? 'Pembina' : 'Tim';
+  roleEl.className = 'role-pill ' + (currentRole === 'pembina' ? 'role-pembina' : 'role-tim');
+}
+
+function updateDeadline() {
+  const deadline = new Date('2026-04-07');
+  const today = new Date();
+  const days = Math.max(0, Math.ceil((deadline - today)/(1000*60*60*24)));
+  document.getElementById('deadline-badge').textContent = `⏰ ${days} hari lagi — 7 Apr 2026`;
+}
+
+// ── FIREBASE REALTIME ──
+function sanitizeKey(s) { return s.replace(/[.#$/[\]]/g,'_'); }
+
+function initFirebase() {
+  if (!fbReady) { loadFromLocalStorage(); return; }
+
+  // Presence
+  const presRef = db.ref('aruna_p2mw2026/presence/' + sanitizeKey(currentUser));
+  presRef.set({ name: currentUser, role: currentRole, ts: Date.now() });
+  presRef.onDisconnect().remove();
+
+  // Watch presence
+  db.ref('aruna_p2mw2026/presence').on('value', snap => {
+    const data = snap.val() || {};
+    const chips = document.getElementById('live-chips');
+    chips.innerHTML = Object.values(data).map(u =>
+      `<div class="live-chip">${u.name} <span style="opacity:.5">(${u.role})</span></div>`
+    ).join('') || '<span style="color:rgba(255,255,255,.3)">Hanya kamu</span>';
+  });
+
+  // Watch checks
+  db.ref('aruna_p2mw2026/checks').on('value', snap => {
+    checksData = snap.val() || {};
+    refreshAllUI();
+  });
+
+  // Watch notes
+  db.ref('aruna_p2mw2026/notes').on('value', snap => {
+    notesData = snap.val() || {};
+    refreshAllNotes();
+  });
+}
+
+function loadFromLocalStorage() {
+  try {
+    checksData = JSON.parse(localStorage.getItem('aruna_checks')||'{}');
+    notesData = JSON.parse(localStorage.getItem('aruna_notes')||'{}');
+  } catch(e) {}
+  refreshAllUI();
+}
+
+// ── TOGGLE TASK ──
+function toggleTask(id, el) {
+  if (currentRole !== 'pembina') {
+    // Tim can also toggle — pembina-only removed for collaboration
+  }
+  const newVal = !checksData[id];
+  checksData[id] = newVal;
+
+  if (fbReady) {
+    db.ref('aruna_p2mw2026/checks/' + id).set(newVal ? {
+      checked: true, by: currentUser, ts: Date.now()
+    } : null);
+  } else {
+    localStorage.setItem('aruna_checks', JSON.stringify(checksData));
+    refreshAllUI();
+  }
+  showToast(newVal ? '✓ Ditandai selesai' : 'Dibatalkan');
+}
+
+// ── SEND NOTE ──
+function sendNote(section) {
+  const input = document.getElementById('noteinput-'+section);
+  const text = input?.value.trim();
+  if (!text) return;
+
+  const noteObj = {
+    text, by: currentUser, role: currentRole,
+    ts: Date.now(), tsStr: new Date().toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})
+  };
+
+  if (fbReady) {
+    db.ref('aruna_p2mw2026/notes/' + section).push(noteObj);
+  } else {
+    if (!notesData[section]) notesData[section] = {};
+    notesData[section][Date.now()] = noteObj;
+    localStorage.setItem('aruna_notes', JSON.stringify(notesData));
+    refreshAllNotes();
+  }
+  input.value = '';
+}
+
+// ── RENDER PANELS ──
+function renderAllPanels() {
+  SECTIONS.forEach(s => renderPanel(s));
+}
+
+function renderPanel(s) {
+  const def = TASKS[s];
+  const container = document.getElementById('panel-' + s);
+  if (!container || !def) return;
+
+  const sbColors = {red:'var(--red-bg);color:var(--red)',amber:'var(--amber-bg);color:var(--amber)',green:'var(--green-bg);color:var(--green)',blue:'var(--blue-bg);color:var(--blue)'};
+  const ibClass = {red:'ib-red',amber:'ib-amber',green:'ib-green',blue:'ib-blue'};
+
+  container.innerHTML = `
+    <div class="panel-header">
+      <div>
+        <div class="panel-title"><em>${def.title}</em></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px;">Bobot Penilaian: ${def.bobot}</div>
+      </div>
+      <span class="status-badge" style="background:${sbColors[def.statusColor]}">${def.status}</span>
+    </div>
+
+    <div class="info-box ${ibClass[def.info.type]}">
+      <strong>${def.info.msg}</strong>${def.info.sub}
+    </div>
+
+    <div class="section-progress">
+      <div class="sp-ring">
+        <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="20" fill="none" stroke="var(--border)" stroke-width="5"/><circle id="sring-${s}" cx="26" cy="26" r="20" fill="none" stroke="#22c55e" stroke-width="5" stroke-dasharray="125.7" stroke-dashoffset="125.7" stroke-linecap="round" transform="rotate(-90 26 26)" style="transition:stroke-dashoffset .6s;"/></svg>
+        <div class="sp-ring-label" id="sring-pct-${s}">0%</div>
+      </div>
+      <div class="sp-info">
+        <div class="sp-title" id="sp-title-${s}">0 dari ${def.tasks.length} selesai</div>
+        <div class="sp-sub">Centang setiap tugas yang telah diselesaikan tim</div>
+      </div>
+    </div>
+
+    <table class="task-table">
+      <thead><tr>
+        <th style="width:44px;">✓</th>
+        <th style="width:32px;">#</th>
+        <th>Tugas Perbaikan</th>
+        <th style="width:100px;">Prioritas</th>
+      </tr></thead>
+      <tbody id="tbody-${s}">
+        ${def.tasks.map((t,i) => renderTaskRow(t, i+1)).join('')}
+      </tbody>
+    </table>
+
+    <div class="notes-section">
+      <div class="notes-header">
+        <span class="notes-header-title">💬 Komentar & Catatan (${def.title})</span>
+        <span style="font-size:11px;color:var(--text3);">Real-time · Semua anggota bisa membaca</span>
+      </div>
+      <div class="notes-body" id="notes-body-${s}">
+        <div class="no-notes">Belum ada catatan. Tambahkan catatan pertama.</div>
+      </div>
+      <div class="note-input-row">
+        <textarea class="note-input" id="noteinput-${s}" rows="2" placeholder="Tulis catatan, pertanyaan, atau update progress..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendNote('${s}');}"></textarea>
+        <button class="note-send" onclick="sendNote('${s}')">Kirim</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTaskRow(t, num) {
+  const pClass = {kritis:'pt-kritis',penting:'pt-penting',opsional:'pt-opsional'}[t.prio]||'pt-opsional';
+  const pLabel = {kritis:'🔴 Kritis',penting:'🟡 Penting',opsional:'🔵 Opsional'}[t.prio]||t.prio;
+  return `
+    <tr class="task-row" id="tr-${t.id}">
+      <td style="text-align:center;">
+        <div class="check-wrap" style="justify-content:center;">
+          <div class="task-check" id="chk-${t.id}" onclick="toggleTask('${t.id}',this)"></div>
+        </div>
+      </td>
+      <td><span class="task-num">${num}</span></td>
+      <td>
+        <div class="task-text" id="txt-${t.id}">${t.text}</div>
+        <div class="task-why">↳ ${t.why}</div>
+        <div class="who-checked" id="who-${t.id}" style="display:none;"></div>
+      </td>
+      <td><span class="prio-tag ${pClass}">${pLabel}</span></td>
+    </tr>`;
+}
+
+// ── REFRESH UI ──
+function refreshAllUI() {
+  SECTIONS.forEach(s => refreshSectionUI(s));
+  updateProgressOverview();
+}
+
+function refreshSectionUI(s) {
+  const def = TASKS[s];
+  if (!def) return;
+  let done = 0;
+  def.tasks.forEach(t => {
+    const data = checksData[t.id];
+    const checked = data && data.checked;
+    if (checked) done++;
+    const chkEl = document.getElementById('chk-'+t.id);
+    const trEl = document.getElementById('tr-'+t.id);
+    const txtEl = document.getElementById('txt-'+t.id);
+    const whoEl = document.getElementById('who-'+t.id);
+    if (chkEl) { chkEl.classList.toggle('checked', !!checked); }
+    if (trEl) { trEl.classList.toggle('done', !!checked); }
+    if (txtEl) { txtEl.style.textDecoration = checked ? 'line-through' : ''; txtEl.style.color = checked ? 'var(--text3)' : ''; }
+    if (whoEl && data && data.by) {
+      whoEl.style.display = 'block';
+      whoEl.innerHTML = `✓ Diselesaikan oleh <span>${data.by}</span> · ${data.ts ? new Date(data.ts).toLocaleDateString('id-ID') : ''}`;
+    } else if (whoEl) { whoEl.style.display = 'none'; }
+  });
+
+  const total = def.tasks.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+
+  // section ring
+  const ring = document.getElementById('sring-'+s);
+  const ringPct = document.getElementById('sring-pct-'+s);
+  const spTitle = document.getElementById('sp-title-'+s);
+  if (ring) ring.setAttribute('stroke-dashoffset', 125.7 - 125.7*pct/100);
+  if (ringPct) ringPct.textContent = pct+'%';
+  if (spTitle) spTitle.textContent = `${done} dari ${total} selesai`;
+
+  // sidebar
+  const pctEl = document.getElementById('spct-'+s);
+  const dotEl = document.getElementById('snav-'+s);
+  if (pctEl) { pctEl.textContent = pct+'%'; pctEl.style.color = pct===100?'var(--green)':pct>=50?'#f59e0b':'var(--red)'; }
+  if (dotEl) { dotEl.className='nav-dot'; dotEl.classList.add(pct===100?'nd-green':pct>=50?'nd-amber':'nd-red'); }
+}
+
+function updateProgressOverview() {
+  let totalAll=0, doneAll=0, kritisLeft=0, pentingLeft=0;
+  SECTIONS.forEach(s => {
+    const def = TASKS[s];
+    if (!def) return;
+    totalAll += def.tasks.length;
+    def.tasks.forEach(t => {
+      const checked = checksData[t.id]?.checked;
+      if (checked) doneAll++;
+      else if (t.prio==='kritis') kritisLeft++;
+      else if (t.prio==='penting') pentingLeft++;
+    });
+  });
+  const pct = totalAll ? Math.round(doneAll/totalAll*100) : 0;
+
+  ['po-done','ov-done'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=doneAll; });
+  const poTotal = document.getElementById('po-total'); if(poTotal) poTotal.textContent=totalAll;
+  ['po-kritis','ov-kritis'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=kritisLeft; });
+  ['po-pct','ov-pct'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=pct+'%'; });
+  const ovP = document.getElementById('ov-penting'); if(ovP) ovP.textContent=pentingLeft;
+
+  // po-bars
+  const barsEl = document.getElementById('po-bars');
+  if (barsEl) {
+    const labels = {a:'A. Tujuan Mulia',b:'B. Konsumen',c:'C. Inovasi Produk',d:'D. Pemasaran',e:'E. Sumber Daya',f:'F. Keuangan',g:'G. Traksi',web:'Website',admin:'Administrasi'};
+    barsEl.innerHTML = SECTIONS.map(s => {
+      const def = TASKS[s]; if(!def) return '';
+      const done = def.tasks.filter(t => checksData[t.id]?.checked).length;
+      const p = def.tasks.length ? Math.round(done/def.tasks.length*100) : 0;
+      const c = p===100?'#22c55e':p>=50?'#f59e0b':'#ef4444';
+      return `<div class="po-bar-item">
+        <div class="po-bar-label">
+          <span class="po-bar-name">${labels[s]}</span>
+          <span class="po-bar-pct" style="color:${c}">${p}%</span>
+        </div>
+        <div class="po-bar-track"><div class="po-bar-fill" style="width:${p}%;background:${c};"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── NOTES RENDER ──
+function refreshAllNotes() {
+  SECTIONS.forEach(s => {
+    const body = document.getElementById('notes-body-' + s);
+    if (!body) return;
+    const sectionNotes = notesData[s];
+    if (!sectionNotes || Object.keys(sectionNotes).length === 0) {
+      body.innerHTML = '<div class="no-notes">Belum ada catatan. Tambahkan catatan pertama.</div>';
+      return;
+    }
+    const sorted = Object.values(sectionNotes).sort((a,b) => a.ts - b.ts);
+    body.innerHTML = sorted.map(n => {
+      const initials = n.by.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const roleColor = n.role==='pembina' ? '#b5622a' : '#1a4f99';
+      return `<div class="note-entry">
+        <div class="note-avatar" style="background:${roleColor}">${initials}</div>
+        <div class="note-content">
+          <div class="note-meta"><strong>${n.by}</strong> · ${n.role==='pembina'?'Pembina':'Tim'} · ${n.tsStr||''}</div>
+          <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+        </div>
+      </div>`;
+    }).join('');
+    body.scrollTop = body.scrollHeight;
+  });
+}
+
+// ── NAVIGATION ──
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-'+id);
+  if (panel) panel.classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── AUTO LOGIN (session) ──
+(function checkSession() {
+  const saved = sessionStorage.getItem('aruna_user');
+  if (saved) {
+    try {
+      const u = JSON.parse(saved);
+      document.getElementById('input-name').value = u.name;
+      selectRole(u.role);
+      if (u.role === 'pembina') document.getElementById('input-kode').value = PEMBINA_KODE;
+      doLogin();
+    } catch(e) {}
+  }
+})();
+</script>
+</body>
+</html>
